@@ -1,12 +1,15 @@
 import Select from 'react-select';
 
 const options = [
-  { value: 'option 1', label: 'Surplus' },
-  { value: 'option 2', label: 'Adequacy' },
-  { value: 'option 3', label: 'Shortage' },
+  { value: 'Surplus', label: 'Surplus' },
+  { value: 'Adequacy', label: 'Adequacy' },
+  { value: 'Shortage', label: 'Shortage' },
 ];
 
-const FinancialOption = () => {
+const FinancialOption = ({ onChange }) => {
+  const handleChange = (selectedOption) => {
+    onChange(selectedOption.value);
+  };
   return (
     <div>
       <Select
@@ -19,6 +22,8 @@ const FinancialOption = () => {
             paddingLeft: '10px',
           }),
         }}
+        placeholder="Financial status"
+        onChange={handleChange}
         options={options}
       />
     </div>

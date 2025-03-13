@@ -1,14 +1,19 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import styled from 'styled-components';
+import { useNavigate } from 'react-router-dom';
 import TextInput from '../components/TextInput';
 import FinancialOption from '../components/FinancialOption';
 import { fetchOpenAIResponse } from '../utils/openai';
 
 const MainPage = () => {
-  const [products, setProducts] = useState(['']); // 상품 링크 배열
+  const [products, setProducts] = useState(['']);
   const [productPurpose, setProductPurpose] = useState('');
   const [productReason, setProductReason] = useState('');
   const [aiResponse, setAiResponse] = useState('');
+  const [financialStatus, setFinancialStatus] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+
+  const navigate = useNavigate();
 
   // 상품 추가 버튼 클릭 시 실행
   const addProductInput = () => {
@@ -27,6 +32,35 @@ const MainPage = () => {
     setProducts(updatedProducts);
   };
 
+  // AI 추천 요청 함수
+  const handleGetRecommendation = async () => {
+    setIsLoading(true);
+    if (
+      products.some((product) => !product) ||
+      !productPurpose ||
+      !productReason ||
+      !financialStatus
+    ) {
+      alert('Please fill in all the items');
+      setIsLoading(false);
+      return; // 함수 실행 중단
+    }
+    const recommendation = await fetchOpenAIResponse(
+      products,
+      productPurpose,
+      productReason,
+      'Medium Budget', // 예제 재정 상태 (추후 사용자 입력 반영 가능)
+    );
+    setAiResponse(recommendation);
+    setIsLoading(false);
+  };
+
+  useEffect(() => {
+    if (aiResponse) {
+      navigate('/recommend', { state: { aiResponse } });
+    }
+  }, [aiResponse, navigate]);
+
   return (
     <Container>
       <Title>ShopWise</Title>
@@ -43,12 +77,12 @@ const MainPage = () => {
                 value={product}
                 onChange={(e) => handleProductChange(index, e.target.value)}
                 isTextarea={false}
-                style={{ paddingRight: '80px' }} // 버튼 공간 확보
+                style={{ paddingRight: '80px' }}
               />
               {index === products.length - 1 && (
                 <AddButton onClick={addProductInput}>+</AddButton>
               )}
-              {products.length > 1 && (
+              {products.length > 1 && index !== 0 && (
                 <RemoveButton onClick={() => removeProductInput(index)}>
                   ✖
                 </RemoveButton>
@@ -68,7 +102,10 @@ const MainPage = () => {
             onChange={(e) => setProductReason(e.target.value)}
             isTextarea={true}
           />
-          <FinancialOption placeholder="Financial status" />
+          <FinancialOption
+            placeholder="Financial status"
+            onChange={setFinancialStatus}
+          />
         </Card>
       </CardWrapper>
 
@@ -77,15 +114,16 @@ const MainPage = () => {
         any consequences of their final purchase decision.
       </WarningText>
 
-      {/* <StyledButton onClick={handleGetRecommendation}>
-        Get recommendations
-      </StyledButton> */}
+      <StyledButton onClick={handleGetRecommendation} disabled={isLoading}>
+        {isLoading ? 'Loading...' : 'Get recommendations'}
+      </StyledButton>
 
-      {/* {aiResponse && <ResponseBox>{aiResponse}</ResponseBox>} */}
+      {aiResponse && navigate('/recommend', { state: { aiResponse } })}
     </Container>
   );
 };
 
+// 스타일 컴포넌트 (생략 가능)
 const Container = styled.div`
   display: flex;
   flex-direction: column;
@@ -134,8 +172,8 @@ const WarningText = styled.p`
 
 const StyledButton = styled.button`
   width: 300px;
-  height: 60px;
-  font-size: 25px;
+  padding: 20px;
+  font-size: 20px;
   color: white;
   background-color: #daadad;
   border: none;
@@ -162,8 +200,8 @@ const AddButton = styled.button`
   right: 10px;
   top: 50%;
   transform: translateY(-50%);
-  background: none;
-  color: #b75555;
+  background: white;
+  color: #ff69b4;
   border: none;
   cursor: pointer;
   font-size: 22px;
@@ -176,24 +214,13 @@ const RemoveButton = styled.button`
   right: -25px;
   top: 50%;
   transform: translateY(-50%);
-  color: blue;
+  color: black;
   border: none;
   cursor: pointer;
   background-color: transparent;
   font-size: 20px;
   width: 30px;
   height: 30px;
-`;
-
-const ResponseBox = styled.div`
-  margin-top: 30px;
-  padding: 20px;
-  width: 600px;
-  background: #fff;
-  border-radius: 10px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-  font-size: 16px;
-  text-align: left;
 `;
 
 export default MainPage;
