@@ -15,12 +15,10 @@ const MainPage = () => {
 
   const navigate = useNavigate();
 
-  // 상품 추가 버튼 클릭 시 실행
   const addProductInput = () => {
     setProducts([...products, '']);
   };
 
-  // 특정 상품 제거
   const removeProductInput = (index) => {
     setProducts(products.filter((_, i) => i !== index));
   };
@@ -49,7 +47,7 @@ const MainPage = () => {
       products,
       productPurpose,
       productReason,
-      'Medium Budget', // 예제 재정 상태 (추후 사용자 입력 반영 가능)
+      'Medium Budget',
     );
     setAiResponse(recommendation);
     setIsLoading(false);
